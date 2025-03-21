@@ -28,6 +28,46 @@ const simpleWeatherService = {
       console.error('Error fetching weather by city:', error);
       throw error;
     }
+  },
+  
+  /**
+   * Get weather forecast for a location by city name
+   * @param {string} city - The city name
+   * @returns {Promise} - Promise containing forecast data with hourly and daily objects
+   */
+  getForecastByCity: async (city) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/weather/forecast`, {
+        params: {
+          location: city,
+          apikey: API_KEY
+        }
+      });
+      
+      // Extract and format hourly forecast data (temperature and weatherCode only)
+      const hourlyForecast = response.data.timelines.hourly.map(hour => ({
+        time: hour.time,
+        temperature: hour.values.temperature,
+        weatherCode: hour.values.weatherCode
+      }));
+      
+      // Extract and format daily forecast data (temperature and weatherCode only)
+      const dailyForecast = response.data.timelines.daily.map(day => ({
+        time: day.time,
+        temperatureMax: day.values.temperatureMax,
+        temperatureMin: day.values.temperatureMin,
+        weatherCode: day.values.weatherCode
+      }));
+      
+      return {
+        location: response.data.location,
+        hourly: hourlyForecast,
+        daily: dailyForecast
+      };
+    } catch (error) {
+      console.error('Error fetching forecast by city:', error);
+      throw error;
+    }
   }
 };
 
