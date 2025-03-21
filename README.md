@@ -1,12 +1,68 @@
-# React + Vite
+# Weather App - React
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern weather application built with React and the Tomorrow.io API. This app provides users with current weather conditions, forecasts, and other weather-related information with an intuitive and responsive user interface.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Current weather conditions
+- Hourly forecast
+- Daily/weekly forecast
+- Geolocation for automatic location detection
+- Location search
+- Responsive design
 
-## Expanding the ESLint configuration
+## Technologies Used
 
-If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Core
+- React 19
+- Vite - Fast build tool with HMR (Hot Module Replacement)
+
+### API Integration
+- **Axios** - Promise-based HTTP client for making API requests to Tomorrow.io
+  - Used for fetching weather data with clean, easy-to-use syntax
+  - Provides automatic JSON data transformation
+  - Supports request/response interceptors
+  - Offers better error handling compared to fetch
+
+### Weather Data
+- Tomorrow.io API - Provides accurate weather forecasts and current conditions
+
+## Getting Started
+
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn
+- Tomorrow.io API key
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Create a `.env` file in the root directory with your Tomorrow.io API key:
+   ```
+   VITE_TOMORROW_API_KEY=your_api_key_here
+   VITE_API_UNITS=metric
+   ```
+4. Start the development server:
+   ```
+   npm run dev
+   ```
+
+## Project Structure
+
+- `/src/services` - API services including weatherService.js for Tomorrow.io integration
+- `/src/components` - React components for different parts of the UI
+- `/src/utils` - Utility functions including geolocation
+
+## Development Notes
+
+- The app uses environment variables for API keys and configuration
+- Axios is used for all API requests to Tomorrow.io
+- Geolocation API is used to detect the user's current location
+
+## License
+
+MIT
