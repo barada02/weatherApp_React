@@ -162,14 +162,14 @@ const Home = () => {
         </div>
         <div className="popular-cities-list">
           {[
-            { name: 'Delhi', status: 'Partly Cloudy', code: 1101 },
-            { name: 'Mumbai', status: 'Drizzle Rain', code: 4001 },
-            { name: 'Hyderabad', status: 'Heavy Rain', code: 4201 },
-            { name: 'Bangalore', status: 'Light Thunder', code: 5001 },
-            { name: 'Kolkata', status: 'Mostly Sunny', code: 8000 },
-            { name: 'Pune', status: 'Clear', code: 1000 },
-            { name: 'Visakhapatnam', status: 'Cloudy', code: 1001 },
-            { name: 'Bhubaneswar', status: 'Light Rain', code: 4200 }
+            { name: 'Delhi', status: 'Partly Cloudy', code: 1101, temp: 32 },
+            { name: 'Mumbai', status: 'Drizzle Rain', code: 4001, temp: 29 },
+            { name: 'Hyderabad', status: 'Heavy Rain', code: 4201, temp: 31 },
+            { name: 'Bangalore', status: 'Light Thunder', code: 5001, temp: 27 },
+            { name: 'Kolkata', status: 'Mostly Sunny', code: 8000, temp: 33 },
+            { name: 'Pune', status: 'Clear', code: 1000, temp: 30 },
+            { name: 'Visakhapatnam', status: 'Cloudy', code: 1001, temp: 28 },
+            { name: 'Bhubaneswar', status: 'Light Rain', code: 4200, temp: 30 }
           ].map((city, index) => (
             <div 
               key={index} 
@@ -180,6 +180,7 @@ const Home = () => {
                 {getWeatherIcon(city.code).icon}
               </div>
               <div className="city-name">{city.name}</div>
+              <div className="city-temp">{city.temp}°</div>
               <div className="city-weather-status">{city.status}</div>
             </div>
           ))}
