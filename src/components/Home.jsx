@@ -117,7 +117,7 @@ const Home = () => {
               </div>
               <div className="detail-item">
                 <span className="detail-label">Wind Speed</span>
-                <span className="detail-value">{currentWeather.data.values.windSpeed} km/h</span>
+                <span className="detail-value">{Math.round(currentWeather.data.values.windSpeed)} km/h</span>
               </div>
               <div className="detail-item">
                 <span className="detail-label">UV Index</span>
@@ -136,10 +136,12 @@ const Home = () => {
 
       <div className="popular-cities-container">
         <h5>Popular Cities</h5>
+        {/* Popular cities content will go here */}
       </div>
 
       <div className="hourly-forecast-container">
         <h5>Hourly Forecast</h5>
+        {/* Hourly forecast content will go here */}
       </div>
       
     </div>
