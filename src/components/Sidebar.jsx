@@ -24,25 +24,11 @@ const Sidebar = ({ onNavigate }) => {
             <span className="nav-text">Home</span>
           </li>
           <li 
-            className={activeItem === 'current' ? 'active' : ''}
-            onClick={() => handleNavigation('current')}
+            className={activeItem === 'advanced' ? 'active' : ''}
+            onClick={() => handleNavigation('advanced')}
           >
-            <span className="nav-icon">🌤️</span>
-            <span className="nav-text">Current</span>
-          </li>
-          <li 
-            className={activeItem === 'forecast' ? 'active' : ''}
-            onClick={() => handleNavigation('forecast')}
-          >
-            <span className="nav-icon">📅</span>
-            <span className="nav-text">Forecast</span>
-          </li>
-          <li 
-            className={activeItem === 'cities' ? 'active' : ''}
-            onClick={() => handleNavigation('cities')}
-          >
-            <span className="nav-icon">🗺️</span>
-            <span className="nav-text">Cities</span>
+            <span className="nav-icon">📈</span>
+            <span className="nav-text">Advanced</span>
           </li>
           <li 
             className={activeItem === 'settings' ? 'active' : ''}

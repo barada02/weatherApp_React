@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import './App.css'
-import SimpleWeather from './components/SimpleWeather'
-import SimpleForecast from './components/SimpleForecast'
 import Sidebar from './components/Sidebar'
 import Home from './components/Home'
+import AdvancedAnalysis from './components/AdvancedAnalysis'
 
 function App() {
   const [activePage, setActivePage] = useState('home')
@@ -17,10 +16,10 @@ function App() {
     switch (activePage) {
       case 'home':
         return <Home />
-      case 'current':
-        return <SimpleWeather />
-      case 'forecast':
-        return <SimpleForecast />
+      case 'advanced':
+        return <AdvancedAnalysis />
+      case 'settings':
+        return <div className="placeholder-content">Settings page coming soon</div>
       default:
         return <Home />
     }
