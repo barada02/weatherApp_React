@@ -6,6 +6,20 @@ const API_BASE_URL = 'https://api.tomorrow.io/v4';
 // Use environment variables for API key
 const API_KEY = import.meta.env.VITE_TOMORROW_API_KEY;
 
+// Weather code mapping
+const WEATHER_CODES = {
+  1000: "Clear",
+  1001: "Cloudy",
+  1100: "Mostly Clear",
+  1101: "Partly Cloudy",
+  1102: "Mostly Cloudy",
+  2000: "Fog",
+  2100: "Light Fog",
+  4000: "Drizzle",
+  4200: "Light Rain",
+  5000: "Snow"
+};
+
 /**
  * Simple weather service for interacting with the Tomorrow.io API
  */
@@ -68,6 +82,15 @@ const simpleWeatherService = {
       console.error('Error fetching forecast by city:', error);
       throw error;
     }
+  },
+
+  /**
+   * Get weather status text from weather code
+   * @param {number} code - The weather code from the API
+   * @returns {string} - Human-readable weather status
+   */
+  getWeatherStatus: (code) => {
+    return WEATHER_CODES[code] || "Unknown";
   }
 };
 
