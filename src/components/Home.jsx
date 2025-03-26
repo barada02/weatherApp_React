@@ -28,8 +28,7 @@ const Home = () => {
         </form>
       </div>
       <div className="current-weather-container">
-        <h5>Current Weather</h5>
-
+        
       </div>
       <div className="middle-space">
         {/* Empty space between current weather and popular cities */}
