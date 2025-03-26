@@ -279,6 +279,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden;
 }
 
 .hourly-forecast-container h5 {
@@ -289,6 +290,80 @@
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
+}
+
+/* Hourly forecast content styles */
+.hourly-forecast-content {
+  width: 100%;
+  height: 100%;
+  padding-top: 1rem;
+}
+
+.hourly-forecast-scroll {
+  display: flex;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+  gap: 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.hourly-forecast-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.hourly-forecast-scroll::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.2);
+  border-radius: 10px;
+}
+
+.hourly-forecast-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.hourly-forecast-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.hourly-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 70px;
+  padding: 0.8rem 0.6rem;
+  background-color: rgba(15, 23, 42, 0.3);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.hourly-item:hover {
+  background-color: rgba(15, 23, 42, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.hourly-time {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.hourly-icon {
+  font-size: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.hourly-temp {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #60a5fa, #e879f9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Container headings */
