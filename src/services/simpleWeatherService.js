@@ -16,8 +16,30 @@ const WEATHER_CODES = {
   2000: "Fog",
   2100: "Light Fog",
   4000: "Drizzle",
+  4001: "Drizzle Rain",
   4200: "Light Rain",
-  5000: "Snow"
+  4201: "Heavy Rain",
+  5000: "Snow",
+  5001: "Light Thunder",
+  8000: "Mostly Sunny"
+};
+
+// Reverse mapping for status to code
+const STATUS_TO_CODE = {
+  "Clear": 1000,
+  "Cloudy": 1001,
+  "Mostly Clear": 1100,
+  "Partly Cloudy": 1101,
+  "Mostly Cloudy": 1102,
+  "Fog": 2000,
+  "Light Fog": 2100,
+  "Drizzle": 4000,
+  "Drizzle Rain": 4001,
+  "Light Rain": 4200,
+  "Heavy Rain": 4201,
+  "Snow": 5000,
+  "Light Thunder": 5001,
+  "Mostly Sunny": 8000
 };
 
 /**
@@ -91,6 +113,15 @@ const simpleWeatherService = {
    */
   getWeatherStatus: (code) => {
     return WEATHER_CODES[code] || "Unknown";
+  },
+
+  /**
+   * Get weather code from status text
+   * @param {string} status - The weather status text
+   * @returns {number} - The corresponding weather code
+   */
+  getWeatherCode: (status) => {
+    return STATUS_TO_CODE[status] || 1000; // Default to Clear if not found
   }
 };
 
