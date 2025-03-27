@@ -5,8 +5,10 @@ import simpleWeatherService from '../services/simpleWeatherService';
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentWeather, setCurrentWeather] = useState(null);
+  const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentCity, setCurrentCity] = useState('Hyderabad'); // Track current displayed city
   const defaultCity = 'Hyderabad';
 
   useEffect(() => {
@@ -18,9 +20,18 @@ const Home = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await simpleWeatherService.getCurrentWeatherByCity(city);
-      setCurrentWeather(data);
-      console.log('Weather data:', data);
+      
+      // Fetch current weather and forecast in parallel
+      const [currentData, forecastData] = await Promise.all([
+        simpleWeatherService.getCurrentWeatherByCity(city),
+        simpleWeatherService.getForecastByCity(city)
+      ]);
+      
+      setCurrentWeather(currentData);
+      setForecast(forecastData);
+      setCurrentCity(city); // Update current city being displayed
+      console.log('Weather data:', currentData);
+      console.log('Forecast data:', forecastData);
     } catch (err) {
       console.error('Error fetching weather:', err);
       setError('Failed to fetch weather data. Please try again.');
@@ -33,6 +44,7 @@ const Home = () => {
     e.preventDefault();
     if (searchQuery.trim()) {
       fetchWeatherData(searchQuery);
+      setSearchQuery(''); // Clear search input after search
     }
   };
 
@@ -40,24 +52,33 @@ const Home = () => {
   const getWeatherIcon = (code) => {
     // Simple mapping of weather codes to emoji icons
     const iconMap = {
-      'Clear': '☀️',
-      'Cloudy': '☁️',
-      'Mostly Clear': '🌤️',
-      'Partly Cloudy': '⛅',
-      'Mostly Cloudy': '🌥️',
-      'Fog': '🌫️',
-      'Light Fog': '🌫️',
-      'Drizzle': '🌦️',
-      'Light Rain': '🌧️',
-      'Snow': '❄️',
-      'Unknown': '❓'
+      1000: '☀️', // Clear
+      1001: '☁️', // Cloudy
+      1100: '🌤️', // Mostly Clear
+      1101: '⛅', // Partly Cloudy
+      1102: '🌥️', // Mostly Cloudy
+      2000: '🌫️', // Fog
+      2100: '🌫️', // Light Fog
+      4000: '🌦️', // Drizzle
+      4001: '🌧️', // Drizzle Rain
+      4200: '🌧️', // Light Rain
+      4201: '🌧️', // Heavy Rain
+      5000: '❄️', // Snow
+      5001: '⛈️', // Light Thunder
+      8000: '☀️', // Mostly Sunny
     };
     
     const status = simpleWeatherService.getWeatherStatus(code);
     return {
-      icon: iconMap[status] || '❓',
+      icon: iconMap[code] || '❓',
       status
     };
+  };
+
+  // Format time from ISO string to readable format (e.g., "3 PM")
+  const formatTime = (isoString) => {
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
   };
 
   return (
@@ -135,13 +156,60 @@ const Home = () => {
       </div>
 
       <div className="popular-cities-container">
-        <h5>Popular Cities</h5>
-        {/* Popular cities content will go here */}
+        <div className="popular-cities-header">
+          <span>Popular Cities</span>
+          <a href="#" className="view-more">View more</a>
+        </div>
+        <div className="popular-cities-list">
+          {[
+            { name: 'Delhi', status: 'Partly Cloudy', code: 1101, temp: 32 },
+            { name: 'Mumbai', status: 'Drizzle Rain', code: 4001, temp: 29 },
+            { name: 'Hyderabad', status: 'Heavy Rain', code: 4201, temp: 31 },
+            { name: 'Bangalore', status: 'Light Thunder', code: 5001, temp: 27 },
+            { name: 'Kolkata', status: 'Mostly Sunny', code: 8000, temp: 33 },
+            { name: 'Pune', status: 'Clear', code: 1000, temp: 30 },
+            { name: 'Visakhapatnam', status: 'Cloudy', code: 1001, temp: 28 },
+            { name: 'Bhubaneswar', status: 'Light Rain', code: 4200, temp: 30 }
+          ].map((city, index) => (
+            <div 
+              key={index} 
+              className="popular-city-item" 
+              onClick={() => fetchWeatherData(city.name)}
+            >
+              <div className="city-weather-icon">
+                {getWeatherIcon(city.code).icon}
+              </div>
+              <div className="city-name">{city.name}</div>
+              <div className="city-temp">{city.temp}°</div>
+              <div className="city-weather-status">{city.status}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="hourly-forecast-container">
-        <h5>Hourly Forecast</h5>
-        {/* Hourly forecast content will go here */}
+        <h5>Hourly Forecast for {currentCity}</h5>
+        {loading ? (
+          <div className="loading">Loading forecast data...</div>
+        ) : error ? (
+          <div className="error">{error}</div>
+        ) : forecast && forecast.hourly ? (
+          <div className="hourly-forecast-content">
+            <div className="hourly-forecast-scroll">
+              {forecast.hourly.slice(0, 24).map((hour, index) => (
+                <div className="hourly-item" key={index}>
+                  <div className="hourly-time">{formatTime(hour.time)}</div>
+                  <div className="hourly-icon">
+                    {getWeatherIcon(hour.weatherCode).icon}
+                  </div>
+                  <div className="hourly-temp">{Math.round(hour.temperature)}°</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="no-data">No forecast data available</div>
+        )}
       </div>
       
     </div>
