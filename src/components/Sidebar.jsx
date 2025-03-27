@@ -31,6 +31,13 @@ const Sidebar = ({ onNavigate }) => {
             <span className="nav-text">Advanced</span>
           </li>
           <li 
+            className={activeItem === 'data' ? 'active' : ''}
+            onClick={() => handleNavigation('data')}
+          >
+            <span className="nav-icon">📊</span>
+            <span className="nav-text">Data</span>
+          </li>
+          <li 
             className={activeItem === 'settings' ? 'active' : ''}
             onClick={() => handleNavigation('settings')}
           >

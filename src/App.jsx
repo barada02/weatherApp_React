@@ -3,6 +3,7 @@ import './App.css'
 import Sidebar from './components/Sidebar'
 import Home from './components/Home'
 import AdvancedAnalysis from './components/AdvancedAnalysis'
+import WeatherData from './components/WeatherData'
 
 function App() {
   const [activePage, setActivePage] = useState('home')
@@ -18,6 +19,8 @@ function App() {
         return <Home />
       case 'advanced':
         return <AdvancedAnalysis />
+      case 'data':
+        return <WeatherData />
       case 'settings':
         return <div className="placeholder-content">Settings page coming soon</div>
       default:
