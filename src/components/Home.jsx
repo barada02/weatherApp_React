@@ -86,7 +86,7 @@ const Home = () => {
       <div className="search-container">
         <form onSubmit={handleSearch} className="search-form">
           <div className="search-input-container">
-            <i className="search-icon">&#x1F50D;</i>
+            <i className="search-icon">🔍</i>
             <input 
               type="text" 
               className="search-input" 
