@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
 import simpleWeatherService from '../services/simpleWeatherService';
+import pdfReportService from '../services/pdfReportService';
 import './WeatherData.css';
 
 const WeatherData = () => {
@@ -13,11 +12,29 @@ const WeatherData = () => {
   const [forecast, setForecast] = useState(null);
   const [history, setHistory] = useState(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [selectedReportType, setSelectedReportType] = useState('comprehensive');
+  const [customSections, setCustomSections] = useState({
+    current: true,
+    hourly: true,
+    daily: true,
+    historical: false
+  });
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
 
   // Fetch all weather data on component mount or when city changes
   useEffect(() => {
     fetchAllWeatherData(city);
   }, [city]);
+
+  // Clear success message after 3 seconds
+  useEffect(() => {
+    if (downloadSuccess) {
+      const timer = setTimeout(() => {
+        setDownloadSuccess(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [downloadSuccess]);
 
   const fetchAllWeatherData = async (location) => {
     try {
@@ -50,339 +67,107 @@ const WeatherData = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const handleReportTypeChange = (type) => {
+    setSelectedReportType(type);
   };
 
-  const generateCurrentWeatherPDF = () => {
-    if (!currentWeather) return;
+  const handleSectionToggle = (section) => {
+    setCustomSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const generateAndDownloadPDF = async () => {
+    if (!currentWeather || !forecast) return;
     
     setGeneratingPdf(true);
     
-    const doc = new jsPDF();
-    
-    // Add title
-    doc.setFontSize(20);
-    doc.setTextColor(44, 62, 80);
-    doc.text(`Current Weather Report for ${city}`, 105, 15, { align: 'center' });
-    
-    // Add timestamp
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Generated on ${new Date().toLocaleString()}`, 105, 22, { align: 'center' });
-    
-    // Add current weather data
-    doc.setFontSize(14);
-    doc.setTextColor(44, 62, 80);
-    doc.text('Current Weather Conditions', 14, 35);
-    
-    const currentWeatherData = [
-      ['Parameter', 'Value'],
-      ['Temperature', `${currentWeather.temperature}°C`],
-      ['Feels Like', `${currentWeather.temperatureApparent || '-'}°C`],
-      ['Humidity', `${currentWeather.humidity}%`],
-      ['Wind Speed', `${currentWeather.windSpeed} km/h`],
-      ['Wind Direction', `${currentWeather.windDirection}°`],
-      ['Pressure', `${currentWeather.pressure} hPa`],
-      ['Weather Condition', simpleWeatherService.getWeatherStatus(currentWeather.weatherCode)],
-      ['Visibility', `${currentWeather.visibility || '-'} km`],
-      ['Cloud Cover', `${currentWeather.cloudCover || '-'}%`],
-      ['UV Index', currentWeather.uvIndex || '-']
-    ];
-    
-    doc.autoTable({
-      startY: 40,
-      head: [currentWeatherData[0]],
-      body: currentWeatherData.slice(1),
-      theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-      alternateRowStyles: { fillColor: [240, 240, 240] }
-    });
-    
-    doc.save(`${city}_current_weather_${new Date().toISOString().split('T')[0]}.pdf`);
-    setGeneratingPdf(false);
-  };
-
-  const generateForecastPDF = () => {
-    if (!forecast) return;
-    
-    setGeneratingPdf(true);
-    
-    const doc = new jsPDF();
-    
-    // Add title
-    doc.setFontSize(20);
-    doc.setTextColor(44, 62, 80);
-    doc.text(`Weather Forecast Report for ${city}`, 105, 15, { align: 'center' });
-    
-    // Add timestamp
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Generated on ${new Date().toLocaleString()}`, 105, 22, { align: 'center' });
-    
-    // Add hourly forecast data
-    doc.setFontSize(14);
-    doc.setTextColor(44, 62, 80);
-    doc.text('Hourly Forecast (Next 24 Hours)', 14, 35);
-    
-    const hourlyData = [
-      ['Time', 'Temperature (°C)', 'Weather Condition']
-    ];
-    
-    forecast.hourly.slice(0, 24).forEach(hour => {
-      const date = new Date(hour.time);
-      hourlyData.push([
-        date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        hour.temperature,
-        simpleWeatherService.getWeatherStatus(hour.weatherCode)
-      ]);
-    });
-    
-    doc.autoTable({
-      startY: 40,
-      head: [hourlyData[0]],
-      body: hourlyData.slice(1),
-      theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-      alternateRowStyles: { fillColor: [240, 240, 240] }
-    });
-    
-    // Add daily forecast data
-    const endY = doc.lastAutoTable.finalY + 15;
-    doc.setFontSize(14);
-    doc.setTextColor(44, 62, 80);
-    doc.text('Daily Forecast', 14, endY);
-    
-    const dailyData = [
-      ['Date', 'Min Temp (°C)', 'Max Temp (°C)', 'Weather Condition']
-    ];
-    
-    forecast.daily.forEach(day => {
-      const date = new Date(day.time);
-      dailyData.push([
-        date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-        day.temperatureMin,
-        day.temperatureMax,
-        simpleWeatherService.getWeatherStatus(day.weatherCode)
-      ]);
-    });
-    
-    doc.autoTable({
-      startY: endY + 5,
-      head: [dailyData[0]],
-      body: dailyData.slice(1),
-      theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-      alternateRowStyles: { fillColor: [240, 240, 240] }
-    });
-    
-    doc.save(`${city}_forecast_${new Date().toISOString().split('T')[0]}.pdf`);
-    setGeneratingPdf(false);
-  };
-
-  const generateHistoricalPDF = () => {
-    if (!history) return;
-    
-    setGeneratingPdf(true);
-    
-    const doc = new jsPDF();
-    
-    // Add title
-    doc.setFontSize(20);
-    doc.setTextColor(44, 62, 80);
-    doc.text(`Historical Weather Report for ${city}`, 105, 15, { align: 'center' });
-    
-    // Add timestamp
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Generated on ${new Date().toLocaleString()}`, 105, 22, { align: 'center' });
-    
-    // Add daily historical data
-    doc.setFontSize(14);
-    doc.setTextColor(44, 62, 80);
-    doc.text('Historical Weather (Past 7 Days)', 14, 35);
-    
-    const dailyData = [
-      ['Date', 'Avg Temp (°C)', 'Min Temp (°C)', 'Max Temp (°C)', 'Precipitation (mm)', 'Avg Humidity (%)']
-    ];
-    
-    history.daily.forEach(day => {
-      const date = new Date(day.time);
-      dailyData.push([
-        date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-        day.temperatureAvg.toFixed(1),
-        day.temperatureMin.toFixed(1),
-        day.temperatureMax.toFixed(1),
-        day.precipitationSum ? day.precipitationSum.toFixed(1) : '0.0',
-        day.humidityAvg ? day.humidityAvg.toFixed(0) : '-'
-      ]);
-    });
-    
-    doc.autoTable({
-      startY: 40,
-      head: [dailyData[0]],
-      body: dailyData.slice(1),
-      theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-      alternateRowStyles: { fillColor: [240, 240, 240] }
-    });
-    
-    doc.save(`${city}_historical_${new Date().toISOString().split('T')[0]}.pdf`);
-    setGeneratingPdf(false);
-  };
-
-  const generateCompletePDF = () => {
-    if (!currentWeather || !forecast || !history) return;
-    
-    setGeneratingPdf(true);
-    
-    const doc = new jsPDF();
-    
-    // Add title
-    doc.setFontSize(20);
-    doc.setTextColor(44, 62, 80);
-    doc.text(`Complete Weather Report for ${city}`, 105, 15, { align: 'center' });
-    
-    // Add timestamp
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Generated on ${new Date().toLocaleString()}`, 105, 22, { align: 'center' });
-    
-    // Add current weather data
-    doc.setFontSize(14);
-    doc.setTextColor(44, 62, 80);
-    doc.text('Current Weather Conditions', 14, 35);
-    
-    const currentWeatherData = [
-      ['Parameter', 'Value'],
-      ['Temperature', `${currentWeather.temperature}°C`],
-      ['Feels Like', `${currentWeather.temperatureApparent || '-'}°C`],
-      ['Humidity', `${currentWeather.humidity}%`],
-      ['Wind Speed', `${currentWeather.windSpeed} km/h`],
-      ['Pressure', `${currentWeather.pressure} hPa`],
-      ['Weather Condition', simpleWeatherService.getWeatherStatus(currentWeather.weatherCode)]
-    ];
-    
-    doc.autoTable({
-      startY: 40,
-      head: [currentWeatherData[0]],
-      body: currentWeatherData.slice(1),
-      theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-      alternateRowStyles: { fillColor: [240, 240, 240] }
-    });
-    
-    // Add hourly forecast data
-    let yPos = doc.lastAutoTable.finalY + 15;
-    doc.setFontSize(14);
-    doc.setTextColor(44, 62, 80);
-    doc.text('Hourly Forecast (Next 12 Hours)', 14, yPos);
-    
-    const hourlyData = [
-      ['Time', 'Temperature (°C)', 'Weather Condition']
-    ];
-    
-    forecast.hourly.slice(0, 12).forEach(hour => {
-      const date = new Date(hour.time);
-      hourlyData.push([
-        date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        hour.temperature,
-        simpleWeatherService.getWeatherStatus(hour.weatherCode)
-      ]);
-    });
-    
-    doc.autoTable({
-      startY: yPos + 5,
-      head: [hourlyData[0]],
-      body: hourlyData.slice(1),
-      theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-      alternateRowStyles: { fillColor: [240, 240, 240] }
-    });
-    
-    // Add daily forecast data
-    yPos = doc.lastAutoTable.finalY + 15;
-    doc.setFontSize(14);
-    doc.setTextColor(44, 62, 80);
-    doc.text('Daily Forecast', 14, yPos);
-    
-    const dailyData = [
-      ['Date', 'Min Temp (°C)', 'Max Temp (°C)', 'Weather Condition']
-    ];
-    
-    forecast.daily.forEach(day => {
-      const date = new Date(day.time);
-      dailyData.push([
-        date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-        day.temperatureMin,
-        day.temperatureMax,
-        simpleWeatherService.getWeatherStatus(day.weatherCode)
-      ]);
-    });
-    
-    doc.autoTable({
-      startY: yPos + 5,
-      head: [dailyData[0]],
-      body: dailyData.slice(1),
-      theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-      alternateRowStyles: { fillColor: [240, 240, 240] }
-    });
-    
-    // Add new page for historical data
-    doc.addPage();
-    
-    // Add historical data title
-    doc.setFontSize(14);
-    doc.setTextColor(44, 62, 80);
-    doc.text('Historical Weather (Past 7 Days)', 14, 20);
-    
-    const historicalData = [
-      ['Date', 'Avg Temp (°C)', 'Min Temp (°C)', 'Max Temp (°C)', 'Precipitation (mm)', 'Avg Humidity (%)']
-    ];
-    
-    history.daily.forEach(day => {
-      const date = new Date(day.time);
-      historicalData.push([
-        date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-        day.temperatureAvg.toFixed(1),
-        day.temperatureMin.toFixed(1),
-        day.temperatureMax.toFixed(1),
-        day.precipitationSum ? day.precipitationSum.toFixed(1) : '0.0',
-        day.humidityAvg ? day.humidityAvg.toFixed(0) : '-'
-      ]);
-    });
-    
-    doc.autoTable({
-      startY: 25,
-      head: [historicalData[0]],
-      body: historicalData.slice(1),
-      theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-      alternateRowStyles: { fillColor: [240, 240, 240] }
-    });
-    
-    // Add footer
-    yPos = doc.lastAutoTable.finalY + 15;
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text('Data provided by Tomorrow.io Weather API', 105, yPos, { align: 'center' });
-    
-    doc.save(`${city}_complete_weather_report_${new Date().toISOString().split('T')[0]}.pdf`);
-    setGeneratingPdf(false);
+    try {
+      let pdfBlob;
+      const fileName = `${city}_weather_report_${new Date().toISOString().split('T')[0]}.pdf`;
+      
+      switch (selectedReportType) {
+        case 'comprehensive':
+          pdfBlob = pdfReportService.generateWeatherReportPDF(currentWeather, forecast, history, city);
+          break;
+        case 'current':
+          pdfBlob = pdfReportService.generateCustomReportPDF(
+            { current: currentWeather.data.values },
+            city,
+            ['current']
+          );
+          break;
+        case 'forecast':
+          pdfBlob = pdfReportService.generateCustomReportPDF(
+            { 
+              hourly: forecast.hourly.slice(0, 24),
+              daily: forecast.daily
+            },
+            city,
+            ['hourly', 'daily']
+          );
+          break;
+        case 'historical':
+          pdfBlob = pdfReportService.generateCustomReportPDF(
+            { daily: history.daily },
+            city,
+            ['daily']
+          );
+          break;
+        case 'custom':
+          const sections = [];
+          const data = {};
+          
+          if (customSections.current) {
+            sections.push('current');
+            data.current = currentWeather.data.values;
+          }
+          
+          if (customSections.hourly) {
+            sections.push('hourly');
+            data.hourly = forecast.hourly.slice(0, 24);
+          }
+          
+          if (customSections.daily) {
+            sections.push('daily');
+            data.daily = forecast.daily;
+          }
+          
+          if (customSections.historical && history) {
+            sections.push('historical');
+            data.historical = history.daily;
+          }
+          
+          pdfBlob = pdfReportService.generateCustomReportPDF(data, city, sections);
+          break;
+        default:
+          pdfBlob = pdfReportService.generateWeatherReportPDF(currentWeather, forecast, history, city);
+      }
+      
+      // Create a download link and trigger the download
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      setDownloadSuccess(true);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      setError('Failed to generate PDF. Please try again.');
+    } finally {
+      setGeneratingPdf(false);
+    }
   };
 
   return (
     <div className="weather-data-container">
       <div className="data-header">
-        <h2>Weather Data Download</h2>
+        <h2>Weather Reports</h2>
+        <p className="data-subtitle">Generate and download detailed weather reports for any city</p>
         <form onSubmit={handleSearch} className="search-form">
           <input
             type="text"
@@ -395,79 +180,151 @@ const WeatherData = () => {
         </form>
       </div>
       
-      {loading && <div className="loading">Loading weather data...</div>}
-      {error && <div className="error">{error}</div>}
+      {loading && <div className="loading-overlay"><div className="loader"></div></div>}
+      {error && <div className="error-message">{error}</div>}
+      {downloadSuccess && <div className="success-message">Report downloaded successfully!</div>}
       
-      {currentWeather && forecast && history && !loading && (
+      {currentWeather && forecast && !loading && (
         <div className="data-content">
-          <div className="current-data-card">
-            <h3>Current Weather in {city}</h3>
-            <div className="weather-info">
-              <div className="weather-main">
-                <div className="temperature">{currentWeather.temperature}°C</div>
-                <div className="weather-status">
-                  {simpleWeatherService.getWeatherStatus(currentWeather.weatherCode)}
+          <div className="report-options-container">
+            <div className="current-data-card">
+              <div className="city-weather-preview">
+                <h3>{city}</h3>
+                <div className="weather-preview-content">
+                  <div className="temperature-display">
+                    {Math.round(currentWeather.data.values.temperature)}°C
+                  </div>
+                  <div className="weather-status">
+                    {simpleWeatherService.getWeatherStatus(currentWeather.data.values.weatherCode)}
+                  </div>
+                </div>
+                <div className="weather-details-preview">
+                  <div className="detail-item">
+                    <span className="detail-label">Humidity</span>
+                    <span className="detail-value">{currentWeather.data.values.humidity}%</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Wind</span>
+                    <span className="detail-value">{Math.round(currentWeather.data.values.windSpeed)} km/h</span>
+                  </div>
                 </div>
               </div>
-              <div className="weather-details">
-                <div className="detail-item">
-                  <span className="detail-label">Humidity:</span>
-                  <span className="detail-value">{currentWeather.humidity}%</span>
+            </div>
+            
+            <div className="report-type-selector">
+              <h3>Select Report Type</h3>
+              <div className="report-types">
+                <div 
+                  className={`report-type-option ${selectedReportType === 'comprehensive' ? 'selected' : ''}`}
+                  onClick={() => handleReportTypeChange('comprehensive')}
+                >
+                  <div className="report-icon">📊</div>
+                  <div className="report-type-name">Comprehensive</div>
+                  <div className="report-type-desc">Complete weather report with all available data</div>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">Wind:</span>
-                  <span className="detail-value">{currentWeather.windSpeed} km/h</span>
+                
+                <div 
+                  className={`report-type-option ${selectedReportType === 'current' ? 'selected' : ''}`}
+                  onClick={() => handleReportTypeChange('current')}
+                >
+                  <div className="report-icon">🌡️</div>
+                  <div className="report-type-name">Current Weather</div>
+                  <div className="report-type-desc">Current conditions only</div>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">Pressure:</span>
-                  <span className="detail-value">{currentWeather.pressure} hPa</span>
+                
+                <div 
+                  className={`report-type-option ${selectedReportType === 'forecast' ? 'selected' : ''}`}
+                  onClick={() => handleReportTypeChange('forecast')}
+                >
+                  <div className="report-icon">📅</div>
+                  <div className="report-type-name">Forecast</div>
+                  <div className="report-type-desc">Hourly and daily forecast</div>
+                </div>
+                
+                <div 
+                  className={`report-type-option ${selectedReportType === 'historical' ? 'selected' : ''}`}
+                  onClick={() => handleReportTypeChange('historical')}
+                >
+                  <div className="report-icon">📜</div>
+                  <div className="report-type-name">Historical</div>
+                  <div className="report-type-desc">Past 7 days weather data</div>
+                </div>
+                
+                <div 
+                  className={`report-type-option ${selectedReportType === 'custom' ? 'selected' : ''}`}
+                  onClick={() => handleReportTypeChange('custom')}
+                >
+                  <div className="report-icon">⚙️</div>
+                  <div className="report-type-name">Custom</div>
+                  <div className="report-type-desc">Select specific data sections</div>
                 </div>
               </div>
-            </div>
-            <button 
-              className="download-button"
-              onClick={generateCurrentWeatherPDF}
-              disabled={generatingPdf}
-            >
-              {generatingPdf ? 'Generating...' : 'Download Current Weather PDF'}
-            </button>
-          </div>
-          
-          <div className="data-options">
-            <div className="data-card">
-              <h3>Forecast Data</h3>
-              <p>Download detailed forecast data including hourly and daily predictions.</p>
-              <button 
-                className="download-button"
-                onClick={generateForecastPDF}
-                disabled={generatingPdf}
-              >
-                {generatingPdf ? 'Generating...' : 'Download Forecast PDF'}
-              </button>
+              
+              {selectedReportType === 'custom' && (
+                <div className="custom-sections">
+                  <h4>Select Sections to Include</h4>
+                  <div className="section-checkboxes">
+                    <label className="section-checkbox">
+                      <input 
+                        type="checkbox" 
+                        checked={customSections.current} 
+                        onChange={() => handleSectionToggle('current')}
+                      />
+                      <span>Current Weather</span>
+                    </label>
+                    
+                    <label className="section-checkbox">
+                      <input 
+                        type="checkbox" 
+                        checked={customSections.hourly} 
+                        onChange={() => handleSectionToggle('hourly')}
+                      />
+                      <span>Hourly Forecast</span>
+                    </label>
+                    
+                    <label className="section-checkbox">
+                      <input 
+                        type="checkbox" 
+                        checked={customSections.daily} 
+                        onChange={() => handleSectionToggle('daily')}
+                      />
+                      <span>Daily Forecast</span>
+                    </label>
+                    
+                    <label className="section-checkbox">
+                      <input 
+                        type="checkbox" 
+                        checked={customSections.historical} 
+                        onChange={() => handleSectionToggle('historical')}
+                      />
+                      <span>Historical Data</span>
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
             
-            <div className="data-card">
-              <h3>Historical Data</h3>
-              <p>Download historical weather data for the past 7 days.</p>
+            <div className="download-section">
               <button 
                 className="download-button"
-                onClick={generateHistoricalPDF}
+                onClick={generateAndDownloadPDF}
                 disabled={generatingPdf}
               >
-                {generatingPdf ? 'Generating...' : 'Download Historical PDF'}
+                {generatingPdf ? (
+                  <>
+                    <span className="spinner"></span>
+                    <span>Generating PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="download-icon">📥</span>
+                    <span>Download Report</span>
+                  </>
+                )}
               </button>
-            </div>
-            
-            <div className="data-card full-width">
-              <h3>Complete Weather Report</h3>
-              <p>Download a comprehensive report with current, forecast, and historical weather data.</p>
-              <button 
-                className="download-button primary"
-                onClick={generateCompletePDF}
-                disabled={generatingPdf}
-              >
-                {generatingPdf ? 'Generating...' : 'Download Complete Report'}
-              </button>
+              <p className="download-info">
+                PDF reports include detailed weather information formatted for easy reading and sharing.
+              </p>
             </div>
           </div>
         </div>

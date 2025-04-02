@@ -4,7 +4,7 @@ import axios from 'axios';
 const API_BASE_URL = 'https://api.tomorrow.io/v4';
 
 // Use environment variables for API key
-const API_KEY = import.meta.env.VITE_TOMORROW_API_KEY2;
+const API_KEY = import.meta.env.VITE_TOMORROW_API_KEY;
 
 // Weather code mapping
 const WEATHER_CODES = {
