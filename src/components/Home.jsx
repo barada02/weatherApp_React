@@ -183,20 +183,20 @@ const Home = () => {
             
             <div className="weather-details">
               <div className="detail-item">
-                <span className="detail-label">Cloud Cover</span>
-                <span className="detail-value">{currentWeather.data.values.cloudCover}%</span>
+                <div className="detail-label">Cloud Cover</div>
+                <div className="detail-value">{currentWeather.data.values.cloudCover}%</div>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Humidity</span>
-                <span className="detail-value">{currentWeather.data.values.humidity}%</span>
+                <div className="detail-label">Humidity</div>
+                <div className="detail-value">{currentWeather.data.values.humidity}%</div>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Wind Speed</span>
-                <span className="detail-value">{Math.round(currentWeather.data.values.windSpeed)} km/h</span>
+                <div className="detail-label">Wind Speed</div>
+                <div className="detail-value">{Math.round(currentWeather.data.values.windSpeed)} km/h</div>
               </div>
               <div className="detail-item">
-                <span className="detail-label">UV Index</span>
-                <span className="detail-value">{currentWeather.data.values.uvIndex}</span>
+                <div className="detail-label">UV Index</div>
+                <div className="detail-value">{currentWeather.data.values.uvIndex || 'N/A'}</div>
               </div>
             </div>
           </div>
