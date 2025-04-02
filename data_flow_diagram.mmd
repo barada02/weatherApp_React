@@ -1,0 +1,34 @@
+flowchart LR
+    %% Main entities
+    User([User]) --> UI[User Interface]
+    UI --> WeatherService[Weather Service]
+    WeatherService --> API[Tomorrow.io API]
+    WeatherService --> PdfService[PDF Service]
+    PdfService --> PDF([PDF Report])
+    
+    %% Data flow
+    API -->|Weather Data| WeatherService
+    WeatherService -->|Current Weather| UI
+    WeatherService -->|Forecast Data| UI
+    WeatherService -->|Historical Data| UI
+    UI -->|View Request| User
+    UI -->|Report Request| PdfService
+    PDF -->|Download| User
+    
+    %% API Key Rotation
+    subgraph "API Key Management"
+        Key1[API Key 1] -->|Current Weather| API
+        Key2[API Key 2] -->|Forecast Data| API
+        Key3[API Key 3] -->|Historical Data| API
+    end
+    
+    %% Styling
+    classDef external fill:#ffe6cc,stroke:#d79b00,stroke-width:1px
+    classDef service fill:#d4f1f9,stroke:#6c8ebf,stroke-width:1px
+    classDef ui fill:#d5e8d4,stroke:#82b366,stroke-width:1px
+    classDef data fill:#e1d5e7,stroke:#9673a6,stroke-width:1px
+    
+    class User,PDF,API external
+    class WeatherService,PdfService service
+    class UI ui
+    class Key1,Key2,Key3 data

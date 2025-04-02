@@ -1,0 +1,48 @@
+flowchart TD
+    %% Main Application Components
+    App[App] --> Sidebar[Sidebar Navigation]
+    App --> MainContent[Main Content Area]
+    App --> ApiStats[API Usage Stats]
+    
+    %% Main Content Pages
+    MainContent --> Home[Home Dashboard]
+    MainContent --> Advanced[Advanced Analysis]
+    MainContent --> WeatherData[Weather Data Reports]
+    MainContent --> Settings[Settings]
+    
+    %% Services
+    Services[Services] --> WeatherService[Weather Service]
+    Services --> PdfService[PDF Report Service]
+    
+    %% Weather Service Details
+    WeatherService --> CurrentWeather[Current Weather]
+    WeatherService --> Forecast[Weather Forecast]
+    WeatherService --> Historical[Historical Data]
+    WeatherService --> KeyRotation[API Key Rotation]
+    
+    %% PDF Service Details
+    PdfService --> ComprehensiveReport[Comprehensive Report]
+    PdfService --> CurrentReport[Current Weather Report]
+    PdfService --> ForecastReport[Forecast Report]
+    PdfService --> HistoricalReport[Historical Report]
+    PdfService --> CustomReport[Custom Report]
+    
+    %% External API
+    TomorrowAPI[Tomorrow.io API] --> WeatherService
+    
+    %% Data Flow
+    Home --> WeatherService
+    Advanced --> WeatherService
+    WeatherData --> WeatherService
+    WeatherData --> PdfService
+    
+    %% Styling
+    classDef page fill:#f9f9f9,stroke:#333,stroke-width:1px
+    classDef service fill:#d4f1f9,stroke:#333,stroke-width:1px
+    classDef api fill:#ffe6cc,stroke:#333,stroke-width:1px
+    classDef feature fill:#e6f2ff,stroke:#333,stroke-width:1px
+    
+    class Home,Advanced,WeatherData,Settings page
+    class WeatherService,PdfService service
+    class TomorrowAPI api
+    class CurrentWeather,Forecast,Historical,KeyRotation,ComprehensiveReport,CurrentReport,ForecastReport,HistoricalReport,CustomReport feature

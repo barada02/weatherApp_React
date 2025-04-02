@@ -1,0 +1,37 @@
+flowchart TD
+    %% Main Components
+    App[Weather App] --> UI[User Interface]
+    App --> Services[Services Layer]
+    Services --> API[External API]
+    
+    %% UI Components
+    UI --> Home[Home Dashboard]
+    UI --> Analysis[Advanced Analysis]
+    UI --> Reports[PDF Reports]
+    UI --> Stats[API Usage Stats]
+    
+    %% Services
+    Services --> WeatherService[Weather Service]
+    Services --> PdfService[PDF Generation]
+    
+    %% Weather Service Features
+    WeatherService --> CurrentWeather[Current Weather]
+    WeatherService --> Forecast[Forecast Data]
+    WeatherService --> Historical[Historical Data]
+    
+    %% PDF Features
+    PdfService --> ReportTypes[Multiple Report Types]
+    
+    %% API Integration
+    API --> KeyRotation[API Key Rotation]
+    
+    %% Styling
+    classDef component fill:#f9f9f9,stroke:#333,stroke-width:1px
+    classDef service fill:#d4f1f9,stroke:#333,stroke-width:1px
+    classDef feature fill:#e6f2ff,stroke:#333,stroke-width:1px
+    classDef api fill:#ffe6cc,stroke:#333,stroke-width:1px
+    
+    class App,UI,Home,Analysis,Reports,Stats component
+    class Services,WeatherService,PdfService service
+    class CurrentWeather,Forecast,Historical,ReportTypes feature
+    class API,KeyRotation api

@@ -1,0 +1,29 @@
+flowchart LR
+    %% Main entities with simplified labels
+    User([User]) --> UI[UI]
+    UI --> WS[Weather Service]
+    WS --> API[API]
+    WS --> PDF[PDF Service]
+    PDF --> Report([PDF Report])
+    
+    %% Core data flow with minimal labels
+    API -->|Data| WS
+    WS -->|Weather Info| UI
+    UI -->|Display| User
+    UI -->|Generate| PDF
+    Report -->|Download| User
+    
+    %% Key rotation simplified
+    subgraph "API Keys"
+        K1[Key 1] & K2[Key 2] & K3[Key 3] --> API
+    end
+    
+    %% Styling
+    classDef external fill:#ffe6cc,stroke:#d79b00,stroke-width:1px
+    classDef service fill:#d4f1f9,stroke:#6c8ebf,stroke-width:1px
+    classDef ui fill:#d5e8d4,stroke:#82b366,stroke-width:1px
+    
+    class User,Report,API external
+    class WS,PDF service
+    class UI ui
+    class K1,K2,K3 external
