@@ -9,11 +9,23 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentCity, setCurrentCity] = useState('Hyderabad'); // Track current displayed city
+  const [popularCities, setPopularCities] = useState([
+    'Delhi', 'Mumbai', 'Hyderabad', 'Bangalore', 
+    'Kolkata', 'Pune', 'Visakhapatnam', 'Bhubaneswar'
+  ]);
+  const [showAddCityInput, setShowAddCityInput] = useState(false);
+  const [newCityInput, setNewCityInput] = useState('');
   const defaultCity = 'Hyderabad';
 
   useEffect(() => {
     // Fetch current weather for default city on component mount
     fetchWeatherData(defaultCity);
+    
+    // Load saved cities from localStorage if available
+    const savedCities = localStorage.getItem('popularCities');
+    if (savedCities) {
+      setPopularCities(JSON.parse(savedCities));
+    }
   }, []);
 
   const fetchWeatherData = async (city) => {
@@ -46,6 +58,36 @@ const Home = () => {
       fetchWeatherData(searchQuery);
       setSearchQuery(''); // Clear search input after search
     }
+  };
+
+  const handleAddCity = () => {
+    setShowAddCityInput(true);
+  };
+
+  const handleAddCitySubmit = (e) => {
+    e.preventDefault();
+    if (newCityInput.trim() && !popularCities.includes(newCityInput.trim())) {
+      const updatedCities = [...popularCities, newCityInput.trim()];
+      setPopularCities(updatedCities);
+      setNewCityInput('');
+      setShowAddCityInput(false);
+      
+      // Save to localStorage
+      localStorage.setItem('popularCities', JSON.stringify(updatedCities));
+    }
+  };
+
+  const handleCancelAddCity = () => {
+    setShowAddCityInput(false);
+    setNewCityInput('');
+  };
+
+  const handleRemoveCity = (cityToRemove) => {
+    const updatedCities = popularCities.filter(city => city !== cityToRemove);
+    setPopularCities(updatedCities);
+    
+    // Save to localStorage
+    localStorage.setItem('popularCities', JSON.stringify(updatedCities));
   };
 
   // Function to get weather icon based on weather code
@@ -161,29 +203,39 @@ const Home = () => {
           <a href="#" className="view-more">View more</a>
         </div>
         <div className="popular-cities-list">
-          {[
-            { name: 'Delhi', status: 'Partly Cloudy', code: 1101, temp: 32 },
-            { name: 'Mumbai', status: 'Drizzle Rain', code: 4001, temp: 29 },
-            { name: 'Hyderabad', status: 'Heavy Rain', code: 4201, temp: 31 },
-            { name: 'Bangalore', status: 'Light Thunder', code: 5001, temp: 27 },
-            { name: 'Kolkata', status: 'Mostly Sunny', code: 8000, temp: 33 },
-            { name: 'Pune', status: 'Clear', code: 1000, temp: 30 },
-            { name: 'Visakhapatnam', status: 'Cloudy', code: 1001, temp: 28 },
-            { name: 'Bhubaneswar', status: 'Light Rain', code: 4200, temp: 30 }
-          ].map((city, index) => (
+          {popularCities.map((cityName, index) => (
             <div 
               key={index} 
               className="popular-city-item" 
-              onClick={() => fetchWeatherData(city.name)}
+              onClick={() => fetchWeatherData(cityName)}
             >
-              <div className="city-weather-icon">
-                {getWeatherIcon(city.code).icon}
-              </div>
-              <div className="city-name">{city.name}</div>
-              <div className="city-temp">{city.temp}°</div>
-              <div className="city-weather-status">{city.status}</div>
+              <div className="city-name">{cityName}</div>
+              <button className="remove-city-button" onClick={(e) => {
+                e.stopPropagation();
+                handleRemoveCity(cityName);
+              }}>×</button>
             </div>
           ))}
+          {showAddCityInput ? (
+            <form onSubmit={handleAddCitySubmit} className="add-city-form">
+              <input 
+                type="text" 
+                className="add-city-input" 
+                placeholder="Enter city name..." 
+                value={newCityInput}
+                onChange={(e) => setNewCityInput(e.target.value)}
+              />
+              <button type="submit" className="add-city-button">Add</button>
+              <button type="button" className="cancel-add-city-button" onClick={handleCancelAddCity}>Cancel</button>
+            </form>
+          ) : (
+            <div className="popular-city-item add-city">
+              <div className="add-city-button" onClick={() => handleAddCity()}>
+                <span className="add-icon">+</span>
+                <span>Add City</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
