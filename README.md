@@ -7,9 +7,13 @@ A modern weather application built with React and the Tomorrow.io API. This app 
 - Current weather conditions
 - Hourly forecast
 - Daily/weekly forecast
+- Historical weather data (past 7 days)
+- Advanced weather analysis with data visualization
+- PDF report generation for weather data
+- API usage statistics monitoring
 - Geolocation for automatic location detection
-- Location search
-- Responsive design
+- Location search with popular cities management
+- Responsive design with modern UI
 
 ## Technologies Used
 
@@ -20,12 +24,53 @@ A modern weather application built with React and the Tomorrow.io API. This app 
 ### API Integration
 - **Axios** - Promise-based HTTP client for making API requests to Tomorrow.io
   - Used for fetching weather data with clean, easy-to-use syntax
-  - Provides automatic JSON data transformation
-  - Supports request/response interceptors
-  - Offers better error handling compared to fetch
+- **Tomorrow.io API** - Weather data provider with comprehensive endpoints
+  - API key rotation strategy to prevent rate limiting
 
-### Weather Data
-- Tomorrow.io API - Provides accurate weather forecasts and current conditions
+### PDF Generation
+- **jsPDF** - Client-side JavaScript PDF generation
+- **jspdf-autotable** - Plugin for creating tables in PDFs
+
+### Data Visualization
+- **Chart.js** - Simple yet flexible JavaScript charting library
+- **react-chartjs-2** - React wrapper for Chart.js
+
+## Project Structure
+
+```
+weatherApp_React/
+│
+├── public/                  # Static files
+│
+├── src/                     # Source files
+│   ├── assets/              # Images, fonts, and other static assets
+│   │
+│   ├── components/          # React components
+│   │   ├── AdvancedAnalysis.jsx    # Weather data analysis with charts
+│   │   ├── ApiUsageStats.jsx       # API request monitoring component
+│   │   ├── ErrorDisplay.jsx        # Error handling component
+│   │   ├── Home.jsx                # Main dashboard component
+│   │   ├── Sidebar.jsx             # Navigation sidebar
+│   │   ├── WeatherData.jsx         # PDF report generation component
+│   │   └── *.css                   # Component-specific styles
+│   │
+│   ├── services/            # Service modules
+│   │   ├── simpleWeatherService.js # Weather API integration with key rotation
+│   │   └── pdfReportService.js     # PDF generation functionality
+│   │
+│   ├── utils/               # Utility functions
+│   │
+│   ├── App.jsx              # Main application component
+│   ├── App.css              # Application-wide styles
+│   ├── main.jsx             # Application entry point
+│   └── index.css            # Global styles
+│
+├── .env                     # Environment variables (API keys)
+├── package.json             # Project dependencies and scripts
+├── vite.config.js           # Vite configuration
+├── WEATHER_APP_REPORT.md    # Project overview and documentation
+└── TECHNICAL_DOCUMENTATION.md # Technical details and code explanations
+```
 
 ## Getting Started
 
@@ -37,31 +82,36 @@ A modern weather application built with React and the Tomorrow.io API. This app 
 ### Installation
 
 1. Clone the repository
-2. Install dependencies:
+2. Install dependencies with `npm install`
+3. Create a `.env` file in the root directory with your Tomorrow.io API keys:
    ```
-   npm install
-   ```
-3. Create a `.env` file in the root directory with your Tomorrow.io API key:
-   ```
-   VITE_TOMORROW_API_KEY=your_api_key_here
+   VITE_TOMORROW_API_KEY1=your_api_key_1
+   VITE_TOMORROW_API_KEY2=your_api_key_2
+   VITE_TOMORROW_API_KEY3=your_api_key_3
    VITE_API_UNITS=metric
    ```
-4. Start the development server:
-   ```
-   npm run dev
-   ```
+4. Run the development server with `npm run dev`
 
-## Project Structure
+## Key Features Implementation
 
-- `/src/services` - API services including weatherService.js for Tomorrow.io integration
-- `/src/components` - React components for different parts of the UI
-- `/src/utils` - Utility functions including geolocation
+### API Key Rotation
 
-## Development Notes
+The application implements a sophisticated API key rotation strategy to prevent rate limiting issues when making requests to the Tomorrow.io API:
 
-- The app uses environment variables for API keys and configuration
-- Axios is used for all API requests to Tomorrow.io
-- Geolocation API is used to detect the user's current location
+- Dedicated keys for different request types (current, forecast, historical)
+- Automatic fallback mechanism if a key hits rate limits
+- Request throttling to space out API calls
+- Key status tracking to optimize performance
+
+### PDF Report Generation
+
+Users can generate and download various types of weather reports in PDF format:
+
+- Comprehensive reports with current, forecast, and historical data
+- Current weather reports with detailed metrics
+- Forecast reports with hourly and daily predictions
+- Historical reports showing weather trends from the past week
+- Custom reports where users can select specific sections to include
 
 ## License
 
