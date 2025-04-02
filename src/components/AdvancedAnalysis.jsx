@@ -14,6 +14,7 @@ import {
   Legend,
   Filler
 } from 'chart.js';
+import ErrorDisplay from './ErrorDisplay';
 
 // Register ChartJS components
 ChartJS.register(
@@ -44,10 +45,12 @@ const AdvancedAnalysis = () => {
   }, [city]);
 
   const fetchAllWeatherData = async (location) => {
+    if (!location.trim()) return;
+    
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      setError(null);
-      
       // Fetch current weather, forecast, and historical data in parallel
       const [currentData, forecastData, historyData] = await Promise.all([
         simpleWeatherService.getCurrentWeatherByCity(location),
@@ -58,13 +61,9 @@ const AdvancedAnalysis = () => {
       setCurrentWeather(currentData);
       setForecast(forecastData);
       setHistory(historyData);
-      
-      console.log('Current weather:', currentData);
-      console.log('Forecast data:', forecastData);
-      console.log('Historical data:', historyData);
     } catch (err) {
       console.error('Error fetching weather data:', err);
-      setError('Failed to fetch weather data. Please try again.');
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -95,7 +94,13 @@ const AdvancedAnalysis = () => {
       </div>
       
       {loading && <div className="loading">Loading weather data...</div>}
-      {error && <div className="error">{error}</div>}
+      {error && (
+        <ErrorDisplay 
+          error={error} 
+          onRetry={() => fetchAllWeatherData(city)} 
+          onDismiss={() => setError(null)} 
+        />
+      )}
       
       {currentWeather && forecast && history && !loading && (
         <div className="analysis-content">

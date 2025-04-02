@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import Home from './components/Home'
 import AdvancedAnalysis from './components/AdvancedAnalysis'
 import WeatherData from './components/WeatherData'
+import ApiUsageStats from './components/ApiUsageStats'
 
 function App() {
   const [activePage, setActivePage] = useState('home')
@@ -34,6 +35,7 @@ function App() {
       <main className="content-area">
         {renderContent()}
       </main>
+      <ApiUsageStats />
     </div>
   )
 }

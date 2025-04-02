@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import './Home.css';
 import simpleWeatherService from '../services/simpleWeatherService';
+import ErrorDisplay from './ErrorDisplay';
+import './Home.css';
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,9 +30,14 @@ const Home = () => {
   }, []);
 
   const fetchWeatherData = async (city) => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      setError(null);
+      // Validate city input
+      if (!city || !city.trim()) {
+        throw new Error('Please enter a valid city name');
+      }
       
       // Fetch current weather and forecast in parallel
       const [currentData, forecastData] = await Promise.all([
@@ -44,9 +50,9 @@ const Home = () => {
       setCurrentCity(city); // Update current city being displayed
       console.log('Weather data:', currentData);
       console.log('Forecast data:', forecastData);
-    } catch (err) {
-      console.error('Error fetching weather:', err);
-      setError('Failed to fetch weather data. Please try again.');
+    } catch (error) {
+      console.error('Error fetching weather:', error);
+      setError(error);
     } finally {
       setLoading(false);
     }
@@ -146,7 +152,13 @@ const Home = () => {
         {loading ? (
           <div className="loading">Loading weather data...</div>
         ) : error ? (
-          <div className="error">{error}</div>
+          <div className="error-section">
+            <ErrorDisplay 
+              error={error} 
+              onRetry={() => fetchWeatherData(searchQuery || currentCity)} 
+              onDismiss={() => setError(null)} 
+            />
+          </div>
         ) : currentWeather ? (
           <div className="weather-content">
             <div className="weather-header">
@@ -244,7 +256,13 @@ const Home = () => {
         {loading ? (
           <div className="loading">Loading forecast data...</div>
         ) : error ? (
-          <div className="error">{error}</div>
+          <div className="error-section">
+            <ErrorDisplay 
+              error={error} 
+              onRetry={() => fetchWeatherData(searchQuery || currentCity)} 
+              onDismiss={() => setError(null)} 
+            />
+          </div>
         ) : forecast && forecast.hourly ? (
           <div className="hourly-forecast-content">
             <div className="hourly-forecast-scroll">

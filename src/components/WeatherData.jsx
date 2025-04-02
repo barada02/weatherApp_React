@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import simpleWeatherService from '../services/simpleWeatherService';
 import pdfReportService from '../services/pdfReportService';
+import ErrorDisplay from './ErrorDisplay';
 import './WeatherData.css';
 
 const WeatherData = () => {
@@ -37,11 +38,16 @@ const WeatherData = () => {
   }, [downloadSuccess]);
 
   const fetchAllWeatherData = async (location) => {
+    setLoading(true);
+    setError(null);
+    
     try {
-      setLoading(true);
-      setError(null);
+      // Validate the city input
+      if (!location.trim()) {
+        throw new Error('Please enter a city name');
+      }
       
-      // Fetch current weather, forecast, and historical data in parallel
+      // Fetch all data in parallel
       const [currentData, forecastData, historyData] = await Promise.all([
         simpleWeatherService.getCurrentWeatherByCity(location),
         simpleWeatherService.getForecastByCity(location),
@@ -51,19 +57,45 @@ const WeatherData = () => {
       setCurrentWeather(currentData);
       setForecast(forecastData);
       setHistory(historyData);
-    } catch (err) {
-      console.error('Error fetching weather data:', err);
-      setError('Failed to fetch weather data. Please try again.');
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+      setError(error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
-    if (searchInput.trim()) {
+    setLoading(true);
+    setError(null);
+    setCurrentWeather(null);
+    setForecast(null);
+    setHistory(null);
+    
+    try {
+      // Validate the city input
+      if (!searchInput.trim()) {
+        throw new Error('Please enter a city name');
+      }
+      
+      // Fetch all data in parallel
+      const [currentData, forecastData, historyData] = await Promise.all([
+        simpleWeatherService.getCurrentWeatherByCity(searchInput),
+        simpleWeatherService.getForecastByCity(searchInput),
+        simpleWeatherService.getHistoricalWeatherByCity(searchInput, 7) // Get 7 days of historical data
+      ]);
+      
+      setCurrentWeather(currentData);
+      setForecast(forecastData);
+      setHistory(historyData);
       setCity(searchInput);
       setSearchInput('');
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+      setError(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -82,11 +114,12 @@ const WeatherData = () => {
     if (!currentWeather || !forecast) return;
     
     setGeneratingPdf(true);
+    setError(null);
     
     try {
       let pdfBlob;
-      const fileName = `${city}_weather_report_${new Date().toISOString().split('T')[0]}.pdf`;
       
+      // Check which report type is selected
       switch (selectedReportType) {
         case 'comprehensive':
           pdfBlob = pdfReportService.generateWeatherReportPDF(currentWeather, forecast, history, city);
@@ -149,15 +182,15 @@ const WeatherData = () => {
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = fileName;
+      link.download = `${city}_weather_report_${new Date().toISOString().split('T')[0]}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
       setDownloadSuccess(true);
-    } catch (err) {
-      console.error('Error generating PDF:', err);
-      setError('Failed to generate PDF. Please try again.');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      setError(error);
     } finally {
       setGeneratingPdf(false);
     }
@@ -181,7 +214,13 @@ const WeatherData = () => {
       </div>
       
       {loading && <div className="loading-overlay"><div className="loader"></div></div>}
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <ErrorDisplay 
+          error={error} 
+          onRetry={() => handleSearch({ preventDefault: () => {} })} 
+          onDismiss={() => setError(null)} 
+        />
+      )}
       {downloadSuccess && <div className="success-message">Report downloaded successfully!</div>}
       
       {currentWeather && forecast && !loading && (
